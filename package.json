@@ -9,6 +9,8 @@
   },
   "dependencies": {
     "core-js": "^3.8.3",
+    "crypto-js": "^4.1.1",
+    "jsrsasign": "^10.5.26",
     "vue": "^3.2.13",
     "vue-router": "^4.0.3",
     "vuex": "^4.0.0"
@@ -36,7 +38,11 @@
     "parserOptions": {
       "parser": "@babel/eslint-parser"
     },
-    "rules": {}
+    "rules": {
+      "no-unused-vars": 0,
+      "no-control-regex": 0,
+      "no-extra-semi": 0
+    }
   },
   "browserslist": [
     "> 1%",
