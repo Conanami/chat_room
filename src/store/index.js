@@ -25,6 +25,8 @@ export default createStore({
     },
     // 同步聊天记录
     syncChatRecords(state, records){
+      console.log('同步聊天信息',)
+
       state.chatRecords = records
     },
 

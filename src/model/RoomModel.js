@@ -29,7 +29,9 @@ const RoomModel = ()=>{
 
     //  尝试加载缓存里面的房间信息，如果没有，返回 false。
     const loadCacheUser = (roomId)=>{
-        if(localStorage.getItem(KEY_ROOM+roomId)==undefined){
+        let l=localStorage.getItem(KEY_ROOM+roomId);
+
+        if(l==undefined || l.indexOf('error')==1){
             return false
         }
         let obj = JSON.parse(localStorage.getItem(KEY_ROOM+roomId))
@@ -38,7 +40,9 @@ const RoomModel = ()=>{
         user.pri = obj.pri
         user.roomId = obj.roomId
         // 数据同步给 vuex
-        store.commit('syncUser', obj)
+        store.commit('syncUser', obj);
+        store.commit('syncRoomId',  user.roomId)
+
         console.log('room:'+roomId+' load cache complete', obj)
         return true
 
@@ -74,15 +78,20 @@ const RoomModel = ()=>{
                 // 房间创建返回
                 user.roomId = msgObj.body.id;
                 store.commit('syncRoomId',  user.roomId)
-                console.log('房间id=',user.roomId)
                 break
             case 130:
                 // 加入房间返回
-                handle130(msgObj)
+                handle130(msgObj);
+
                 break
             case 300:
                 // 收到聊天信息
-                handle300(msgObj)
+                handle300(msgObj);
+
+                break
+            case 310:
+                // 收到310信息，修改聊天状态
+                updateRecords(msgObj);
                 break
         }
     }
@@ -97,8 +106,16 @@ const RoomModel = ()=>{
     const handle300 = (msgObj)=>{
         let {auth,context}=msgObj.body;
         let rawBody =JSON.parse( aesDecrypt(context, rsaDecrypt(auth, user.pri)));
-        console.log('rawBody', rawBody)
+        console.log('rawBody', rawBody);
+        //返回310给对方
+        handle310(rawBody,rawBody.localid)
         addRecords(rawBody)
+    }
+
+    const handle310 = (msgObj,localid)=>{
+        console.log('310=',msgObj,localid)
+        websock.sendSock({type:310, from:msgObj.to, to:msgObj.from, body:msgObj.body})
+
     }
 
     // 创建房间
@@ -106,11 +123,22 @@ const RoomModel = ()=>{
         let msg = {type:120, from:user.id, to:'server', body:{name:name, size:size}}
         websock.sendSock(msg)
     }
+ // 修改聊天状态
+    const updateRecords = (msgObj)=>{
+        let {auth,context}=msgObj.body;
+        console.log('310信息=',aesDecrypt(context, user.pri))
+
+        let rawBody =JSON.stringify(aesDecrypt(context, user.pri));
+        console.log('准备修改状态=',rawBody)
+    }
 
     // 加入房间
     const joinRoom = ()=>{
         let msg = {type:130, from: user.id, to:'server', body:{roomid:user.roomId, userid:user.id, pub:user.pub}}
-        websock.sendSock(msg)
+        websock.sendSock(msg);
+        //获取房间信息
+        addRecords('')
+
     }
 
     // 发送消息
@@ -118,10 +146,10 @@ const RoomModel = ()=>{
 
         //如果服务器没有连上，直接报错
         if(websock.getStatus()==false){
+            connect();
             console.log('服务器没有连接')
             return
         }
-
         // 判断聊天室，如果只有两个人，那消息直接发给对方
         if (user.roomInfo.users.length==2){
             let tos = user.roomInfo.users.filter((userid)=>{
@@ -169,7 +197,10 @@ const RoomModel = ()=>{
             user.chatRecords[key] = obj;
           }
         }
-        obj.push(param)
+        if(param!=''){
+            obj.push(param)
+        }
+
         localStorage.setItem(key, JSON.stringify(obj))
 
         //同步聊天记录给 vuex
