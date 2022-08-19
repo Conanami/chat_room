@@ -1,5 +1,5 @@
 <template>
-  <div v-loading="loading" id="chatRoom" >
+  <div  id="chatRoom" >
 
       <el-card  shadow="never" class="box-card">
         <template #header>
@@ -15,37 +15,37 @@
               top: 80px;"
                class="chat-content" ref="chat_div">
 
-<!--            &lt;!&ndash; recordContent 聊天记录数组&ndash;&gt;-->
-<!--            <div v-for="(item, index) in chatRecords" :key="index">-->
-<!--              &lt;!&ndash; 对方 &ndash;&gt;-->
-<!--              <div class="word" v-if="item.from != store.state.userInfo[roomId].userId">-->
-<!--                <div style="width: 40px;" class="headDiv">{{ filters(item.from) }}</div>-->
-<!--                <div class="info">-->
-<!--                  <p class="time">{{ filters(item.from,2) }}</p>-->
-<!--                  <p class="time2"> {{ item.time }}</p>-->
-<!--                  <div class="info-content">{{ item.msg }}-->
-<!--                    &lt;!&ndash;                            <span class="read" v-if="item.status=='1'">已收</span>&ndash;&gt;-->
-<!--                    &lt;!&ndash;                            <span class="read" v-if="item.status=='0'">未读</span>&ndash;&gt;-->
-<!--                    &lt;!&ndash;                            <span class="read" v-if="item.status=='2'">已读</span>&ndash;&gt;-->
-<!--                  </div>-->
+            <!-- recordContent 聊天记录数组-->
+            <div v-for="(item, index) in store.state.chatRecords" :key="index">
+              <!-- 对方 -->
+              <div class="word" v-if="item.from != store.state.userInfo.id">
+                <div style="width: 40px;" class="headDiv">{{ filters(item.from) }}</div>
+                <div class="info">
+                  <p class="time">{{ filters(item.from,2) }}</p>
+                  <p class="time2"> {{ item.time }}</p>
+                  <div class="info-content">{{ item.msg }}
+                    <!--                            <span class="read" v-if="item.status=='1'">已收</span>-->
+                    <!--                            <span class="read" v-if="item.status=='0'">未读</span>-->
+                    <!--                            <span class="read" v-if="item.status=='2'">已读</span>-->
+                  </div>
 
-<!--                </div>-->
-<!--              </div>-->
-<!--              &lt;!&ndash; 我的 &ndash;&gt;-->
-<!--              <div class="word-my" v-else>-->
-<!--                <div class="info">-->
-<!--                  <p class="time">{{ filters(item.from,2) }}</p>-->
-<!--                  <p class="time2"> {{ item.time }}</p>-->
-<!--                  <div class="info-content">{{ item.msg}}-->
-<!--&lt;!&ndash;                    <span class="readTwo" v-if="item.status=='1'">未读</span>&ndash;&gt;-->
-<!--&lt;!&ndash;                    <span class="readTwo" v-else-if="item.status=='0'">未收</span>&ndash;&gt;-->
-<!--&lt;!&ndash;                    <span class="readTwo" v-else-if="item.status=='2'">已读</span>&ndash;&gt;-->
-<!--&lt;!&ndash;                    <span v-else></span>&ndash;&gt;-->
-<!--                  </div>-->
-<!--                </div>-->
-<!--                <div class="headDiv">{{ filters(item.from)}}</div>-->
-<!--              </div>-->
-<!--            </div>-->
+                </div>
+              </div>
+              <!-- 我的 -->
+              <div class="word-my" v-else>
+                <div class="info">
+                  <p class="time">{{ filters(item.from,2) }}</p>
+                  <p class="time2"> {{ item.time }}</p>
+                  <div class="info-content">{{ item.msg}}
+                    <span class="readTwo" v-if="item.status=='1'">未读</span>
+                    <span class="readTwo" v-else-if="item.status=='0'">未收</span>
+                    <span class="readTwo" v-else-if="item.status=='2'">已读</span>
+                    <span v-else></span>
+                  </div>
+                </div>
+                <div class="headDiv">{{ filters(item.from)}}</div>
+              </div>
+            </div>
           </div>
 
           <!--                  输入框-->
@@ -64,16 +64,13 @@
       </el-card>
 
 <!--    提示弹框-->
-    <el-dialog  center :show-close="false" :close-on-press-escape="false" :close-on-click-modal="false" v-model="dialogTableVisible" title="欢迎访问在线聊天室">
-      <h3>{{ hint }}</h3>
-      <template #footer>
-      <span class="dialog-footer">
-        <el-button @click="dialogTableVisible = false">Cancel</el-button>
-        <el-button type="primary" @click="createChatRoom"
-        >创建</el-button
-        >
-      </span>
-      </template>
+    <el-dialog  center :show-close="false" :close-on-press-escape="false" :close-on-click-modal="false" :model-value="store.state.chatRoomInfo.error!=undefined" title="温馨提示">
+      <h3   style="text-align: center;color:#d92a2a">{{store.state.chatRoomInfo.error}}</h3>
+
+    </el-dialog>
+<!--    提示弹框-->
+    <el-dialog  center :show-close="false" :close-on-press-escape="false" :close-on-click-modal="false" :model-value="store.state.chatRoomInfo.error==undefined && store.state.chatRoomInfo.id==undefined " title="温馨提示">
+      <h3  style="text-align: center;color:#d92a2a">正在进入聊天室，请稍后...</h3>
     </el-dialog>
 
 
@@ -85,6 +82,8 @@ import {onMounted, reactive, toRefs, ref, watch, nextTick,computed} from 'vue'
 import { useRoute } from "vue-router"
 import RoomModel from '../model/RoomModel'
 import {useStore} from "vuex";
+import {ElMessageBox} from "element-plus";
+
 export default {
   setup() {
     const roomModel = RoomModel()
@@ -94,14 +93,23 @@ export default {
       chatRecords:[],
       msg:'',
       hint:'提示',
-      dialogTableVisible:true,//弹框
+      dialogTableVisible:false,//弹框
       screenWidth: document.documentElement.clientWidth,//屏幕宽度
     });
-    //创建
+    //加入聊天室
     const createChatRoom=()=>{
-      console.log('创建');
+      console.log('地址栏id=',id)
+      let exist = roomModel.loadCacheUser(id)
+      if(!exist){
+
+              data.dialogTableVisible=true;
+              setTimeout(()=>{
+                roomModel.createUser(id)
+
+              },500)
+      }
       roomModel.connect()
-      roomModel.createRoom('测试房间', 2)
+      roomModel.joinRoom()
     }
   const filters=(val,number=1)=>{
     let str=val+'';
@@ -109,14 +117,17 @@ export default {
   };
 //发送之后回到最下方
     const chat_div = ref(null)
-    // watch(() => store.state.chatRecords[data.roomId], (neval, olval) => {
-    //   console.log(chat_div)
-    //   nextTick(() => {
-    //     chat_div.value.scrollTop = chat_div.value.scrollHeight;
-    //   });
-    // }, {deep: true})
+    watch(() => store.state.chatRecords, (neval, olval) => {
+      console.log(chat_div)
+      nextTick(() => {
+        chat_div.value.scrollTop = chat_div.value.scrollHeight;
+      });
+    }, {deep: true})
     //发送信息
     const sendMsg = (text) => {
+      console.log('发送信息=',text)
+      roomModel.sendMsg(text)
+
     };
 
     onMounted(() => {
@@ -127,20 +138,13 @@ export default {
           data.screenWidth = window.fullWidth;
         })()
       };
-      //获取浏览器本地缓存 判断 room::rsa::abc123  这个key 有没有
-      data.roomKey=JSON.parse(localStorage.getItem('room::rsa::'+data.roomId));
-      if(!data.roomKey){
-        data.dialogTableVisible=true;
-
-      }
-
-
-
+      createChatRoom();
     });
     return {
       ...toRefs(data),
       store,
       sendMsg,
+      roomModel,
       filters,
       createChatRoom,
       chat_div
@@ -153,6 +157,24 @@ export default {
 <style>
 body{
   background-color: #fff !important;
+}
+.readTwo{
+  position: absolute;
+  left: -33px;
+  color: #ccc;
+}
+#editText{
+  border-top: 1px solid #ccc;
+  position: absolute;
+  left:0;
+  right:0;
+  bottom:0px;
+}
+#editText textarea {
+  height: 160px !important;
+  padding: 10px !important;
+  border: 0px solid #ccc !important;
+  box-shadow: none !important
 }
 #chatRoom{
   height: 100vh;
