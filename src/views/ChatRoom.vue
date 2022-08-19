@@ -1,0 +1,301 @@
+<template>
+  <div v-loading="loading" id="chatRoom" >
+
+      <el-card  shadow="never" class="box-card">
+        <template #header>
+          <div class="card-header" style="text-align: center">
+            <h4 style="display: inline"> 在线聊天室</h4>
+         </div>
+        </template>
+        <div>
+          <div style="overflow: auto;padding: 6px;position: absolute;
+              bottom: 220px;
+              left: 0;
+              right: 0;
+              top: 80px;"
+               class="chat-content" ref="chat_div">
+
+<!--            &lt;!&ndash; recordContent 聊天记录数组&ndash;&gt;-->
+<!--            <div v-for="(item, index) in chatRecords" :key="index">-->
+<!--              &lt;!&ndash; 对方 &ndash;&gt;-->
+<!--              <div class="word" v-if="item.from != store.state.userInfo[roomId].userId">-->
+<!--                <div style="width: 40px;" class="headDiv">{{ filters(item.from) }}</div>-->
+<!--                <div class="info">-->
+<!--                  <p class="time">{{ filters(item.from,2) }}</p>-->
+<!--                  <p class="time2"> {{ item.time }}</p>-->
+<!--                  <div class="info-content">{{ item.msg }}-->
+<!--                    &lt;!&ndash;                            <span class="read" v-if="item.status=='1'">已收</span>&ndash;&gt;-->
+<!--                    &lt;!&ndash;                            <span class="read" v-if="item.status=='0'">未读</span>&ndash;&gt;-->
+<!--                    &lt;!&ndash;                            <span class="read" v-if="item.status=='2'">已读</span>&ndash;&gt;-->
+<!--                  </div>-->
+
+<!--                </div>-->
+<!--              </div>-->
+<!--              &lt;!&ndash; 我的 &ndash;&gt;-->
+<!--              <div class="word-my" v-else>-->
+<!--                <div class="info">-->
+<!--                  <p class="time">{{ filters(item.from,2) }}</p>-->
+<!--                  <p class="time2"> {{ item.time }}</p>-->
+<!--                  <div class="info-content">{{ item.msg}}-->
+<!--&lt;!&ndash;                    <span class="readTwo" v-if="item.status=='1'">未读</span>&ndash;&gt;-->
+<!--&lt;!&ndash;                    <span class="readTwo" v-else-if="item.status=='0'">未收</span>&ndash;&gt;-->
+<!--&lt;!&ndash;                    <span class="readTwo" v-else-if="item.status=='2'">已读</span>&ndash;&gt;-->
+<!--&lt;!&ndash;                    <span v-else></span>&ndash;&gt;-->
+<!--                  </div>-->
+<!--                </div>-->
+<!--                <div class="headDiv">{{ filters(item.from)}}</div>-->
+<!--              </div>-->
+<!--            </div>-->
+          </div>
+
+          <!--                  输入框-->
+          <div id="editText">
+            <div>
+              <el-input resize="none" v-model="msg"  type="textarea" placeholder="文明聊天，从这开始" ></el-input>
+            </div>
+            <div style="text-align:right;padding:10px;border-top:1px solid rgb(231, 229, 229)">
+              <el-button  type="primary" @click="sendMsg(msg)"  plain>发送</el-button>
+
+              <el-button plain>清空</el-button>
+            </div>
+          </div>
+
+        </div>
+      </el-card>
+
+<!--    提示弹框-->
+    <el-dialog  center :show-close="false" :close-on-press-escape="false" :close-on-click-modal="false" v-model="dialogTableVisible" title="欢迎访问在线聊天室">
+      <h3>{{ hint }}</h3>
+      <template #footer>
+      <span class="dialog-footer">
+        <el-button @click="dialogTableVisible = false">Cancel</el-button>
+        <el-button type="primary" @click="createChatRoom"
+        >创建</el-button
+        >
+      </span>
+      </template>
+    </el-dialog>
+
+
+  </div>
+</template>
+
+<script>
+import {onMounted, reactive, toRefs, ref, watch, nextTick,computed} from 'vue'
+import { useRoute } from "vue-router"
+import RoomModel from '../model/RoomModel'
+import {useStore} from "vuex";
+export default {
+  setup() {
+    const roomModel = RoomModel()
+    const store = useStore()
+    const {id}=useRoute().query; // 地址兰参数
+    const data = reactive({
+      chatRecords:[],
+      msg:'',
+      hint:'提示',
+      dialogTableVisible:true,//弹框
+      screenWidth: document.documentElement.clientWidth,//屏幕宽度
+    });
+    //创建
+    const createChatRoom=()=>{
+      console.log('创建');
+      roomModel.connect()
+      roomModel.createRoom('测试房间', 2)
+    }
+  const filters=(val,number=1)=>{
+    let str=val+'';
+    return str.substring(0, number)
+  };
+//发送之后回到最下方
+    const chat_div = ref(null)
+    // watch(() => store.state.chatRecords[data.roomId], (neval, olval) => {
+    //   console.log(chat_div)
+    //   nextTick(() => {
+    //     chat_div.value.scrollTop = chat_div.value.scrollHeight;
+    //   });
+    // }, {deep: true})
+    //发送信息
+    const sendMsg = (text) => {
+    };
+
+    onMounted(() => {
+      // 屏幕宽
+      window.onresize = () => {
+        return (() => {
+          window.fullWidth = document.documentElement.clientWidth;
+          data.screenWidth = window.fullWidth;
+        })()
+      };
+      //获取浏览器本地缓存 判断 room::rsa::abc123  这个key 有没有
+      data.roomKey=JSON.parse(localStorage.getItem('room::rsa::'+data.roomId));
+      if(!data.roomKey){
+        data.dialogTableVisible=true;
+
+      }
+
+
+
+    });
+    return {
+      ...toRefs(data),
+      store,
+      sendMsg,
+      filters,
+      createChatRoom,
+      chat_div
+
+    }
+  }
+}
+</script>
+
+<style>
+body{
+  background-color: #fff !important;
+}
+#chatRoom{
+  height: 100vh;
+
+  position: relative;
+
+  border: 1px solid #fff;
+}
+#chatRoom .el-card__body{
+  padding: 0 !important;
+}
+#chatRoom .info-content {
+  border-radius: 5px;
+}
+
+#chatRoom .word {
+  display: flex;
+  margin-bottom: 20px;
+  text-align: left;
+}
+#chatRoom .myhead{
+  width: 50px;
+  height: 50px;
+  border: 1px solid #ccc;
+  line-height: 47px;
+  text-align: center;
+  border-radius: 50%;  color: #79bbff;
+
+}
+.headDiv {
+  min-width:40px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid #ccc;
+  text-align: center;
+  line-height: 37px;
+  color: #79bbff;
+}
+
+
+#chatRoom .word .info {
+  margin-left: 10px;
+}
+
+#chatRoom .word .time {
+  font-size: 12px;
+  color: rgba(51, 51, 51, 0.8);
+  font-weight: bold;
+  margin: 0;
+  height: 20px;
+  line-height: 20px;
+  margin-top: -5px;
+}
+
+#chatRoom .word .time2 {
+  font-size: 10px;
+  color: rgba(51, 51, 51, 0.8);
+  margin: 0;
+  line-height: 20px;
+  margin-top: -5px;
+}
+
+#chatRoom .word .info-content {
+  padding: 10px;
+  font-size: 14px;
+  background: #79bbff;
+  position: relative;
+  margin-top: 0px;
+  margin-left: 10px;
+
+  float: left;
+  word-break:break-all !important;
+  max-width: 100%;
+
+}
+
+#chatRoom .word .info-content::before {
+  position: absolute;
+  left: -8px;
+  top: 3px;
+  content: '';
+  border-right: 10px solid #79bbff;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+}
+
+
+#chatRoom .word-my {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+}
+
+
+#chatRoom .word-my .info {
+  width: 90%;
+  margin-left: 10px;
+  text-align: right;
+}
+
+#chatRoom .word-my .time {
+  font-size: 12px;
+  color: rgba(51, 51, 51, 0.8);
+  font-weight: bold;
+  margin: 0;
+  height: 20px;
+  line-height: 20px;
+  margin-top: -5px;
+  margin-right: 10px;
+}
+
+#chatRoom .word-my .time2 {
+  font-size: 10px;
+  color: rgba(51, 51, 51, 0.8);
+  margin: 0;
+  line-height: 20px;
+  margin-right: 10px;
+
+  margin-top: -5px;
+}
+
+#chatRoom .word-my .info-content {
+  max-width: 90%;
+  padding: 10px;
+  font-size: 14px;
+  float: right;
+  margin-right: 10px;
+  background: #a2f898;
+  text-align: left;
+  position: relative;
+  word-break:break-all !important;
+}
+
+#chatRoom .word-my .info-content::after {
+  position: absolute;
+  right: -8px;
+  top: 3px;
+  content: '';
+  border-left: 10px solid #a2f898;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+}
+
+
+</style>

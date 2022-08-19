@@ -15,7 +15,11 @@ export default createStore({
     syncUser(state, user){
       state.userInfo = user
     },
-    // 同步聊天室信息 
+    //同步房间号
+    syncRoomId(state, roomId){
+      state.roomId = roomId
+    },
+    // 同步聊天室信息
     syncRoomInfo(state, roomInfo){
       state.chatRoomInfo = roomInfo
     },

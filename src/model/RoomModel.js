@@ -3,7 +3,7 @@
  * 1， 如果只是为了创建房间，调用 createRoom 即可。
  * 2， 如果已经有了房间，准备进入， 首先要调用 loadCacheRoom 尝试加载缓存数据，如果没有，则需要调用 createUser 来生成用户密钥对数据
  * 3,  有了用户数据后，需要调用 connect 连接聊天服务器，然后调用 joinRoom 加入房间
- * 4， 
+ * 4，
  */
 import { aesDecrypt, aesEncrypt, generateKey, rsaDecrypt, rsaEncrypt } from '@/util/rsa.js'
 import SnowflakeID from '@/util/snowflake.js'
@@ -14,14 +14,14 @@ import {useStore} from 'vuex'
 import * as websock from '../util/WebSocketKit.js'
 
 const RoomModel = ()=>{
-    
+
     var user = reactive({
-        id: new SnowflakeID().generate(), 
-        pub:'', 
-        pri:'', 
+        id: new SnowflakeID().generate(),
+        pub:'',
+        pri:'',
         roomId:'',
         roomInfo: {},  // {id:abc123, users:['user1', 'user2', 'user3'], pubs:{user1: yyyy, user2: yyyy2}, name:'聊天室名字', size:2 }
-        chatRecords: {},  
+        chatRecords: {},
     })
 
     const  KEY_ROOM = 'room:'
@@ -41,7 +41,7 @@ const RoomModel = ()=>{
         store.commit('syncUser', obj)
         console.log('room:'+roomId+' load cache complete', obj)
         return true
-    
+
     }
 
     // 创建用户密钥对
@@ -60,19 +60,21 @@ const RoomModel = ()=>{
 
     // 连接服务器
     const connect = ()=>{
-        websock.configWebSocket("ws://127.0.0.1:2740/ws/"+user.id, 5)
+        websock.configWebSocket("wss://dev.huifintech.com/ws/"+user.id, 5)
         websock.init(onMessage)
     }
- 
+
     const onMessage = (msgObj)=>{
-        // console.log('receive', JSON.stringify(obj))
+         console.log('收到信息=', msgObj)
         let type = parseInt(msgObj.type)
         switch (type){
             case 110:
                 break
             case 120:
                 // 房间创建返回
-                user.roomId = msgObj.body.id
+                user.roomId = msgObj.body.id;
+                store.commit('syncRoomId',  user.roomId)
+                console.log('房间id=',user.roomId)
                 break
             case 130:
                 // 加入房间返回
@@ -83,7 +85,6 @@ const RoomModel = ()=>{
                 handle300(msgObj)
                 break
         }
-    
     }
 
     const handle130 = (msgObj)=>{
@@ -99,7 +100,7 @@ const RoomModel = ()=>{
         console.log('rawBody', rawBody)
         addRecords(rawBody)
     }
-    
+
     // 创建房间
     const createRoom = (name, size)=>{
         let msg = {type:120, from:user.id, to:'server', body:{name:name, size:size}}
@@ -187,7 +188,7 @@ const RoomModel = ()=>{
 
     return {
         user, connect, createRoom, loadCacheUser, createUser, joinRoom, sendMsg
-    } 
+    }
 }
 
 export default RoomModel
