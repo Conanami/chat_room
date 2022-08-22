@@ -37,9 +37,8 @@
                   <p class="time">{{ filters(item.from,2) }}</p>
                   <p class="time2"> {{ item.time }}</p>
                   <div class="info-content">{{ item.msg}}
-                    <span class="readTwo" v-if="item.status=='1'">未读</span>
+                    <span class="readTwo" v-if="item.status=='2'">已读</span>
                     <span class="readTwo" v-else-if="item.status=='0'">未收</span>
-                    <span class="readTwo" v-else-if="item.status=='2'">已读</span>
                     <span v-else></span>
                   </div>
                 </div>
@@ -51,7 +50,7 @@
           <!--                  输入框-->
           <div id="editText">
             <div>
-              <el-input resize="none" v-model="msg"  type="textarea" placeholder="文明聊天，从这开始" ></el-input>
+              <el-input @keyup.enter="sendMsg(msg)" resize="none" v-model.trim="msg"  type="textarea" placeholder="文明聊天，从这开始" ></el-input>
             </div>
             <div style="text-align:right;padding:10px;border-top:1px solid rgb(231, 229, 229)">
               <el-button  type="primary" @click="sendMsg(msg)"  plain>发送</el-button>
@@ -82,7 +81,8 @@ import {onMounted, reactive, toRefs, ref, watch, nextTick,computed} from 'vue'
 import { useRoute } from "vue-router"
 import RoomModel from '../model/RoomModel'
 import {useStore} from "vuex";
-import {ElMessageBox} from "element-plus";
+import {ElMessage} from 'element-plus'
+
 
 export default {
   setup() {
@@ -98,7 +98,6 @@ export default {
     });
     //加入聊天室
     const createChatRoom=()=>{
-      console.log('地址栏id=',id)
       let exist = roomModel.loadCacheUser(id)
       if(!exist){
 
@@ -125,8 +124,15 @@ export default {
     }, {deep: true})
     //发送信息
     const sendMsg = (text) => {
-      console.log('发送信息=',text)
-      roomModel.sendMsg(text)
+      if(text==''){
+        ElMessage({
+          message: '发送消息不能为空！',
+          type: 'warning',
+        })
+        return;
+      };
+      roomModel.sendMsg(text);
+      data.msg = '';
 
     };
 
