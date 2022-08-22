@@ -97,18 +97,19 @@ export default {
       screenWidth: document.documentElement.clientWidth,//屏幕宽度
     });
     //加入聊天室
-    const createChatRoom=()=>{
+    const joinChatRoom=()=>{
       let exist = roomModel.loadCacheUser(id)
       if(!exist){
-
-              data.dialogTableVisible=true;
-              setTimeout(()=>{
-                roomModel.createUser(id)
-
-              },500)
+          data.dialogTableVisible=true;
+          setTimeout(()=>{
+            roomModel.createUser(id)
+          },500)
       }
-      roomModel.connect()
-      roomModel.joinRoom()
+      roomModel.connect().then(()=>{
+        roomModel.joinRoom().then((obj)=>{
+          console.log('加入聊天室成功', obj)
+        })
+      }) 
     }
   const filters=(val,number=1)=>{
     let str=val+'';
@@ -131,9 +132,9 @@ export default {
         })
         return;
       };
-      roomModel.sendMsg(text);
-      data.msg = '';
-
+      roomModel.sendMsg(text).then(()=>{
+        data.msg = ''
+      });
     };
 
     onMounted(() => {
@@ -144,7 +145,7 @@ export default {
           data.screenWidth = window.fullWidth;
         })()
       };
-      createChatRoom();
+      joinChatRoom();
     });
     return {
       ...toRefs(data),
@@ -152,7 +153,7 @@ export default {
       sendMsg,
       roomModel,
       filters,
-      createChatRoom,
+      joinChatRoom,
       chat_div
 
     }

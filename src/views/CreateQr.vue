@@ -85,17 +85,10 @@ export default {
       }
       let {userid,form}=data;
 
-      roomModel.connect()
-        roomModel.createRoom(data.form);
-      nextTick(()=>{
-        data.dialogVisible=true;
-
-        setTimeout(()=>{
-
-         // childRef.value.updateValue(''+store.state.roomId);
-
-        },500)
-
+      roomModel.connect().then(()=>{
+        roomModel.createRoom(data.form).then((msgObj)=>{
+          data.dialogVisible=true;
+        });
       })
     };
 

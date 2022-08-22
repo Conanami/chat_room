@@ -12,6 +12,7 @@ import {reactive} from 'vue'
 import {useStore} from 'vuex'
 
 import * as websock from '../util/WebSocketKit.js'
+import * as Socket from '../util/Socket'
 
 const RoomModel = () => {
 
@@ -63,9 +64,12 @@ const RoomModel = () => {
     }
 
     // 连接服务器
-    const connect = () => {
-        websock.configWebSocket("wss://dev.huifintech.com/ws/" + user.id, 5)
-        websock.init(onMessage)
+    const connect = async () => {
+        // websock.configWebSocket("wss://dev.huifintech.com/ws/" + user.id, 5)
+        // websock.init(onMessage)
+        Socket.configWebSocket("ws://127.0.0.1:2740/ws/" + user.id, 5, onMessage)
+        // Socket.configWebSocket("wss://dev.huifintech.com/ws/" + user.id, 5, onMessage)
+        return Socket.init()
     }
 
     const onMessage = (msgObj) => {
@@ -87,11 +91,10 @@ const RoomModel = () => {
             case 300:
                 // 收到聊天信息
                 handle300(msgObj);
-
                 break
             case 310:
                 // 收到310信息，修改聊天状态
-                updateRecords(msgObj);
+                handle310(msgObj);
                 break
         }
     }
@@ -107,24 +110,15 @@ const RoomModel = () => {
         let {auth, context} = msgObj.body;
         let rawBody = JSON.parse(aesDecrypt(context, rsaDecrypt(auth, user.pri)));
         console.log('rawBody', rawBody);
+    
         //返回310给对方
-        handle310(rawBody, rawBody.localid)
-        addRecords(rawBody)
+        Socket.sendSock({type: 310, from: msgObj.to, to: msgObj.from, body: {'localid': rawBody.localid}}).then(()=>{
+            addRecords(rawBody)
+        })
     }
 
-    const handle310 = (msgObj, localid) => {
-        console.log('310=', msgObj, localid)
-        websock.sendSock({type: 310, from: msgObj.to, to: msgObj.from, body: {'localid': localid}})
-
-    }
-
-    // 创建房间
-    const createRoom = (name, size) => {
-        let msg = {type: 120, from: user.id, to: 'server', body: {name: name, size: size}}
-        websock.sendSock(msg)
-    }
     // 修改聊天状态
-    const updateRecords = (msgObj) => {
+    const handle310 = (msgObj) => {
         let {localid} = msgObj.body;
         let key = 'records:' + user.roomId
         // 从缓存加载
@@ -140,54 +134,75 @@ const RoomModel = () => {
         //同步聊天记录给 vuex
         store.commit('syncChatRecords', obj)
     }
+    
+    // 创建房间
+    const createRoom = async (name, size) => {
+        return new Promise((resolve, reject)=>{
+            let msg = {type: 120, from: user.id, to: 'server', body: {name: name, size: size}}
+            // websock.sendSock(msg)
+            Socket.sendSock(msg).then((msgObj)=>{
+                user.roomId = msgObj.body.id;
+                store.commit('syncRoomId', user.roomId)
+                resolve(msgObj)
+            })
+        })
+    }
 
     // 加入房间
     const joinRoom = () => {
-        let msg = {type: 130, from: user.id, to: 'server', body: {roomid: user.roomId, userid: user.id, pub: user.pub}}
-        websock.sendSock(msg);
-        //获取房间信息
-        addRecords('')
-
+        return new Promise((resolve, reject)=>{
+            let msg = {type: 130, from: user.id, to: 'server', body: {roomid: user.roomId, userid: user.id, pub: user.pub}}
+    
+            Socket.sendSock(msg).then((obj)=>{
+                handle130(obj)
+                addRecords('')
+                resolve(obj)
+            })
+        })
     }
 
     // 发送消息
     const sendMsg = (msg) => {
         //如果服务器没有连上，直接报错
-        if (websock.getStatus() == false) {
-            connect();
-            console.log('服务器没有连接')
-            return
-        }
-        // 判断聊天室，如果只有两个人，那消息直接发给对方
-        if (user.roomInfo.users.length == 2) {
-            let tos = user.roomInfo.users.filter((userid) => {
-                if (userid != user.id) {
-                    return userid
+        // if (websock.getStatus() == false) {
+        //     connect();
+        //     console.log('服务器没有连接')
+        //     return
+        // }
+        return new Promise((resolve, reject)=>{
+            // 判断聊天室，如果只有两个人，那消息直接发给对方
+            if (user.roomInfo.users.length == 2) {
+                let tos = user.roomInfo.users.filter((userid) => {
+                    if (userid != user.id) {
+                        return userid
+                    }
+                })
+                let to = null
+                if (tos.length > 0) {
+                    to = tos[0]
                 }
-            })
-            let to = null
-            if (tos.length > 0) {
-                to = tos[0]
+                console.log('sendMsg to ', to)
+                if (to) {
+                    let rawBody = {
+                        msg: msg, from: user.id, to: to
+                        , status: 0, time: ftime(new Date()), localid: new SnowflakeID().generate()
+                    }    //原始body
+                    let source = JSON.stringify(rawBody)
+                    let key = new SnowflakeID().generate().substring(0, 8)          // 生成会话密钥
+                    let auth = rsaEncrypt(key, user.roomInfo.pubs[to])    //使用公钥加密 会话密钥
+                    let encrypt = aesEncrypt(source, key)     //使用会话密钥加密 聊天内容以及id
+                    let obj = {type: 140, from: user.id, to: to, body: {auth: auth, context: encrypt}}
+                    Socket.sendSock(obj).then((msgObj)=>{
+                        addRecords(rawBody)
+                        resolve(rawBody)
+                    })
+                }
+    
+            } else if (user.roomInfo.users.length > 2) {
+                // 超过两个人，消息是发给聊天室的，由聊天室发给每个人
+    
             }
-            console.log('sendMsg to ', to)
-            if (to) {
-                let rawBody = {
-                    msg: msg, from: user.id, to: to
-                    , status: 0, time: ftime(new Date()), localid: new SnowflakeID().generate()
-                }    //原始body
-                let source = JSON.stringify(rawBody)
-                let key = new SnowflakeID().generate().substring(0, 8)          // 生成会话密钥
-                let auth = rsaEncrypt(key, user.roomInfo.pubs[to])    //使用公钥加密 会话密钥
-                let encrypt = aesEncrypt(source, key)     //使用会话密钥加密 聊天内容以及id
-                let obj = {type: 300, from: user.id, to: to, body: {auth: auth, context: encrypt}}
-                websock.sendSock(obj)
-                addRecords(rawBody)
-            }
-
-        } else if (user.roomInfo.users.length > 2) {
-            // 超过两个人，消息是发给聊天室的，由聊天室发给每个人
-
-        }
+        });
     }
 
     // 保存聊天记录到本地
