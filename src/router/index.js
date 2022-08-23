@@ -1,9 +1,15 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
+import CreateQr from '../views/CreateQr.vue'
 
 const routes = [
   {
     path: '/',
+    name: 'createQr',
+    component: CreateQr
+  },
+  {
+    path: '/test',
     name: 'home',
     component: HomeView
   },
