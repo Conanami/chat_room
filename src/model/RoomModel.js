@@ -65,10 +65,8 @@ const RoomModel = () => {
 
     // 连接服务器
     const connect = async () => {
-        // websock.configWebSocket("wss://dev.huifintech.com/ws/" + user.id, 5)
-        // websock.init(onMessage)
-        Socket.configWebSocket("ws://127.0.0.1:2740/ws/" + user.id, 5, onMessage)
-        // Socket.configWebSocket("wss://dev.huifintech.com/ws/" + user.id, 5, onMessage)
+        // Socket.configWebSocket("ws://127.0.0.1:2740/ws/" + user.id, 5, onMessage)
+        Socket.configWebSocket("wss://dev.huifintech.com/ws/" + user.id, 5, onMessage)
         return Socket.init()
     }
 
@@ -108,11 +106,13 @@ const RoomModel = () => {
 
     const handle300 = (msgObj) => {
         let {auth, context} = msgObj.body;
+        // console.log('pri:', user.pri)
         let rawBody = JSON.parse(aesDecrypt(context, rsaDecrypt(auth, user.pri)));
         console.log('rawBody', rawBody);
     
         //返回310给对方
-        Socket.sendSock({type: 310, from: msgObj.to, to: msgObj.from, body: {'localid': rawBody.localid}}).then(()=>{
+        Socket.sendSock({type: 310, from: msgObj.to, to: msgObj.from, body: {'localid': rawBody.localid}}).then((obj2)=>{
+            // console.log('send 310 complete')
             addRecords(rawBody)
         })
     }
@@ -120,19 +120,22 @@ const RoomModel = () => {
     // 修改聊天状态
     const handle310 = (msgObj) => {
         let {localid} = msgObj.body;
-        let key = 'records:' + user.roomId
-        // 从缓存加载
-        let str = localStorage.getItem(key)
-        let obj = JSON.parse(str);
-        obj.forEach(item => {
-            if (localid == item.localid) {
-                item.status = '2'
-            }
-        })
-        user.chatRecords[key] = obj;
-        localStorage.setItem(key, JSON.stringify(obj))
-        //同步聊天记录给 vuex
-        store.commit('syncChatRecords', obj)
+        if(localid){
+            console.log('sync records')
+            let key = 'records:' + user.roomId
+            // 从缓存加载
+            let str = localStorage.getItem(key)
+            let obj = JSON.parse(str);
+            obj.forEach(item => {
+                if (localid == item.localid) {
+                    item.status = '2'
+                }
+            })
+            user.chatRecords[key] = obj;
+            localStorage.setItem(key, JSON.stringify(obj))
+            //同步聊天记录给 vuex
+            store.commit('syncChatRecords', obj)
+        }
     }
     
     // 创建房间
@@ -188,10 +191,12 @@ const RoomModel = () => {
                         , status: 0, time: ftime(new Date()), localid: new SnowflakeID().generate()
                     }    //原始body
                     let source = JSON.stringify(rawBody)
-                    let key = new SnowflakeID().generate().substring(0, 8)          // 生成会话密钥
+                    let key = 's'+ new SnowflakeID().generate().substring(0, 3)          // 生成会话密钥
                     let auth = rsaEncrypt(key, user.roomInfo.pubs[to])    //使用公钥加密 会话密钥
+                    console.log('key:', key, user.roomInfo.pubs[to])
+                    
                     let encrypt = aesEncrypt(source, key)     //使用会话密钥加密 聊天内容以及id
-                    let obj = {type: 140, from: user.id, to: to, body: {auth: auth, context: encrypt}}
+                    let obj = {type: 140, from: user.id, to: user.roomId, body: {auth: auth, context: encrypt}}
                     Socket.sendSock(obj).then((msgObj)=>{
                         addRecords(rawBody)
                         resolve(rawBody)
@@ -207,6 +212,7 @@ const RoomModel = () => {
 
     // 保存聊天记录到本地
     const addRecords = (param) => {
+        console.log('addRecords:', param)
         let key = 'records:' + user.roomId
         let obj = user.chatRecords[key];
         if (!obj) {

@@ -24,17 +24,23 @@ class EventDispatcher{
     }
 
     removeListener = (eventKey, fun, context) => {
-        let list = this.listeners[eventKey]
-        if (list !== undefined) {
-            let size = list.length
-            for (let i = 0; i < size; i++) {
-                let listener = list[i]
-                if (listener.func === fun && listener.context === context) {
-                    list.splice(i, 1)
-                    return
-                }
-            }
-        }
+        this.listeners[eventKey] = null
+        // let index = this.listeners.indexOf(eventKey)
+        // if(index!=-1){
+        //     this.listeners(index, 1)
+        // }
+        // let list = this.listeners[eventKey]
+        // if (list !== undefined) {
+        //     this.listeners
+        //     let size = list.length
+        //     for (let i = 0; i < size; i++) {
+        //         let listener = list[i]
+        //         if (listener.func === fun && listener.context === context) {
+        //             list.splice(i, 1)
+        //             return
+        //         }
+        //     }
+        // }
     }
 
     dispatchEvent = (eventKey, event) => {

@@ -103,13 +103,19 @@ export default {
           data.dialogTableVisible=true;
           setTimeout(()=>{
             roomModel.createUser(id)
+            roomModel.connect().then(()=>{
+              roomModel.joinRoom().then((obj)=>{
+                console.log('加入聊天室成功', obj)
+              })
+            }) 
           },500)
+      }else{
+        roomModel.connect().then(()=>{
+              roomModel.joinRoom().then((obj)=>{
+                console.log('加入聊天室成功', obj)
+              })
+            }) 
       }
-      roomModel.connect().then(()=>{
-        roomModel.joinRoom().then((obj)=>{
-          console.log('加入聊天室成功', obj)
-        })
-      }) 
     }
   const filters=(val,number=1)=>{
     let str=val+'';
@@ -118,7 +124,7 @@ export default {
 //发送之后回到最下方
     const chat_div = ref(null)
     watch(() => store.state.chatRecords, (neval, olval) => {
-      console.log(chat_div)
+      // console.log(chat_div)
       nextTick(() => {
         chat_div.value.scrollTop = chat_div.value.scrollHeight;
       });

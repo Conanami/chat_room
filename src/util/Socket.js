@@ -91,7 +91,6 @@ const sendSock = (agentData)=>{
             let type = parseInt(agentData.type)
             eventDispatcher.addListener(type, resolve)
             websock.send(JSON.stringify(agentData))
-            // resolve()
         }
     })
 }

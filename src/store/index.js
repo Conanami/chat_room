@@ -14,6 +14,7 @@ export default createStore({
     //同步用户信息
     syncUser(state, user){
       state.userInfo = user
+      state.roomId = user.roomId
     },
     //同步房间号
     syncRoomId(state, roomId){
