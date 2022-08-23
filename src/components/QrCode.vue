@@ -1,5 +1,5 @@
 <template>
-  <qrcode-vue  :value="'https://hxx.huifintech.com/chat_user/chatroom?id='+store.state.roomId" :size="size" level="H" />
+  <qrcode-vue  :value="'https://hxx.huifintech.com/chat_room/#/chatroom?id='+store.state.roomId" :size="size" level="H" />
 </template>
 <script>
 import QrcodeVue from 'qrcode.vue'
