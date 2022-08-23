@@ -10,8 +10,6 @@ import SnowflakeID from '@/util/snowflake.js'
 import dateFormat from '@/util/time.js'
 import {reactive} from 'vue'
 import {useStore} from 'vuex'
-
-import * as websock from '../util/WebSocketKit.js'
 import * as Socket from '../util/Socket'
 
 const RoomModel = () => {
@@ -84,7 +82,6 @@ const RoomModel = () => {
             case 130:
                 // 加入房间返回
                 handle130(msgObj);
-
                 break
             case 300:
                 // 收到聊天信息
@@ -107,14 +104,20 @@ const RoomModel = () => {
     const handle300 = (msgObj) => {
         let {auth, context} = msgObj.body;
         // console.log('pri:', user.pri)
-        let rawBody = JSON.parse(aesDecrypt(context, rsaDecrypt(auth, user.pri)));
-        console.log('rawBody', rawBody);
-    
-        //返回310给对方
-        Socket.sendSock({type: 310, from: msgObj.to, to: msgObj.from, body: {'localid': rawBody.localid}}).then((obj2)=>{
-            // console.log('send 310 complete')
+        if(parseInt(user.roomInfo.size)==2){
+            let rawBody = JSON.parse(aesDecrypt(context, rsaDecrypt(auth, user.pri)));
+            console.log('rawBody', rawBody);
+        
+            //返回310给对方
+            Socket.sendSock({type: 310, from: msgObj.to, to: msgObj.from, body: {'localid': rawBody.localid}}).then((obj2)=>{
+                // console.log('send 310 complete')
+                addRecords(rawBody)
+            })
+        }else{
+            let rawBody = JSON.parse(aesDecrypt(context, user.roomInfo.passwd));
+            console.log('rawBody', rawBody);
             addRecords(rawBody)
-        })
+        }
     }
 
     // 修改聊天状态
@@ -205,6 +208,17 @@ const RoomModel = () => {
     
             } else if (user.roomInfo.users.length > 2) {
                 // 超过两个人，消息是发给聊天室的，由聊天室发给每个人
+                let to  = user.roomId
+                let rawBody = {
+                    msg: msg, from: user.id, to: to
+                    , status: 2, time: ftime(new Date()), localid: new SnowflakeID().generate()
+                }    //原始body
+                let encrypt = aesEncrypt(JSON.stringify(rawBody), user.roomInfo.passwd)
+                let obj = {type: 140, from: user.id, to: to, body: {context: encrypt}}
+                    Socket.sendSock(obj).then((msgObj)=>{
+                        addRecords(rawBody)
+                        resolve(rawBody)
+                    })
     
             }
         });

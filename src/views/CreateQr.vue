@@ -86,23 +86,12 @@ export default {
       let {userid,form}=data;
 
       roomModel.connect().then(()=>{
-        roomModel.createRoom(data.form).then((msgObj)=>{
+        roomModel.createRoom(name, size).then((msgObj)=>{
           data.dialogVisible=true;
         });
       })
     };
 
-    //收到消息
-    const receiveMsg = (msg) => {
-      let {type,body:{id}}=msg;
-      if(id){
-        data.infoObj=msg;
-        childRef.value.updateValue('https://hxx.huifintech.com/chat_user/chatroom?id='+id);
-
-      }
-      console.log('收到信息=',msg);
-
-    };
     onMounted(() => {
 
       window.onresize = () => {
