@@ -19,9 +19,9 @@
             <div v-for="(item, index) in store.state.chatRecords" :key="index">
               <!-- 对方 -->
               <div class="word" v-if="item.from != store.state.userInfo.id">
-                <div style="width: 40px;" class="headDiv">{{ filters(item.from) }}</div>
+                <div style="width: 40px;" class="headDiv">{{ (store.state.chatRoomInfo.users!=undefined &&store.state.chatRoomInfo.users.length<3)? '他':filters(item.from) }}</div>
                 <div class="info">
-                  <p class="time">{{ filters(item.from,2) }}</p>
+                  <p class="time">{{ filters(item.from,5) }}</p>
                   <p class="time2"> {{ item.time }}</p>
                   <div class="info-content">{{ item.msg }}
                     <!--                            <span class="read" v-if="item.status=='1'">已收</span>-->
@@ -34,7 +34,7 @@
               <!-- 我的 -->
               <div class="word-my" v-else>
                 <div class="info">
-                  <p class="time">{{ filters(item.from,2) }}</p>
+                  <p class="time">{{filters(item.from,5) }}</p>
                   <p class="time2"> {{ item.time }}</p>
                   <div class="info-content">{{ item.msg}}
                     <span class="readTwo" v-if="item.status=='2'">已读</span>
@@ -42,7 +42,7 @@
                     <span v-else></span>
                   </div>
                 </div>
-                <div class="headDiv">{{ filters(item.from)}}</div>
+                <div class="headDiv">{{  (store.state.chatRoomInfo.users!=undefined &&store.state.chatRoomInfo.users.length<3)? '我':filters(item.from)}}</div>
               </div>
             </div>
           </div>
@@ -108,14 +108,14 @@ export default {
                 console.log('加入聊天室成功', obj)
                 data.dialogTableVisible=false;
               })
-            }) 
+            })
           },500)
       }else{
         roomModel.connect().then(()=>{
               roomModel.joinRoom().then((obj)=>{
                 console.log('加入聊天室成功', obj)
               })
-            }) 
+            })
       }
     }
   const filters=(val,number=1)=>{
