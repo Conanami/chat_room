@@ -155,6 +155,13 @@ const RoomModel = () => {
             Socket.sendSock(msg).then((msgObj)=>{
                 user.roomId = msgObj.body.id;
                 store.commit('syncRoomId', user.roomId)
+
+                let href = window.location.href
+                href = href.substring(0, href.indexOf('#'))
+                href = href + '#/chatroom?id=' + user.roomId
+                console.log('syncChatRoomUrl', href)
+                store.commit('syncChatRoomUrl', href)
+
                 resolve(msgObj)
             })
         })
@@ -175,12 +182,6 @@ const RoomModel = () => {
 
     // 发送消息
     const sendMsg = (msg) => {
-        //如果服务器没有连上，直接报错
-        // if (websock.getStatus() == false) {
-        //     connect();
-        //     console.log('服务器没有连接')
-        //     return
-        // }
         return new Promise((resolve, reject)=>{
             console.log('人数1=',store.getters.getUserLength)
 
