@@ -212,6 +212,8 @@ const RoomModel = () => {
                         addRecords(rawBody)
                         resolve(rawBody)
                     })
+                }else{
+                    reject({error:'对方尚未加入聊天室，无法发送消息'})
                 }
 
             } else if (user.roomInfo.users.length > 2) {

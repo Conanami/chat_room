@@ -141,6 +141,11 @@ export default {
       };
       roomModel.sendMsg(text).then(()=>{
         data.msg = ''
+      }).catch((obj)=>{
+        ElMessage({
+          message: obj.error,
+          type: 'warning',
+        })
       });
     };
 
