@@ -62,7 +62,7 @@ const init = ()=>{
                 isConnect = false
             }
             websock.onopen = (e)=>{
-                console.log('onopen', e.target.url)
+                console.log('onopen')
                 isConnect = true
                 // startHeart()
             }
@@ -72,6 +72,8 @@ const init = ()=>{
                 // console.log(e.data)
                 reject({message:'聊天服务器配置异常'})
             }   
+        }else{
+            resolve({})
         }
     }) 
 }

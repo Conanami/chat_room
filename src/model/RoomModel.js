@@ -109,7 +109,7 @@ const RoomModel = () => {
 
     const handle300 = (msgObj) => {
         let {auth, context} = msgObj.body;
-        if(parseInt(store.getters.getUserLength)==2){
+        if(parseInt(user.roomInfo.size)==2){
             let rawBody = JSON.parse(aesDecrypt(context, rsaDecrypt(auth, user.pri)));
             console.log('rawBody', rawBody);
 
@@ -119,7 +119,7 @@ const RoomModel = () => {
                 addRecords(rawBody)
             })
         }else{
-            console.log('接收的密码=',user.roomInfo.passwd)
+            // console.log('接收的密码=',user.roomInfo.passwd)
             let rawBody = JSON.parse(aesDecrypt(context, user.roomInfo.passwd));
             console.log('rawBody', rawBody);
             addRecords(rawBody)
@@ -183,9 +183,13 @@ const RoomModel = () => {
     // 发送消息
     const sendMsg = (msg) => {
         return new Promise((resolve, reject)=>{
-            console.log('人数1=',store.getters.getUserLength)
-
-            // 判断聊天室，如果只有两个人，那消息直接发给对方
+            // 如果人数不够，消息发不出去
+            if(user.roomInfo.users.length < 2){
+                reject({error:'对方尚未加入聊天室，无法发送消息'})
+                return
+            }
+            
+            // 如果聊天室 容量是 2，那消息直接发给对方
             if (parseInt(user.roomInfo.size) == 2) {
                 let tos = user.roomInfo.users.filter((userid) => {
                     if (userid != user.id) {
@@ -213,12 +217,9 @@ const RoomModel = () => {
                         addRecords(rawBody)
                         resolve(rawBody)
                     })
-                }else{
-                    reject({error:'对方尚未加入聊天室，无法发送消息'})
                 }
-
-            } else if (user.roomInfo.users.length > 2) {
-                // 超过两个人，消息是发给聊天室的，由聊天室发给每个人
+            } else {
+                // 聊天室容量超过两个人，消息是发给聊天室的，由聊天室发给每个人
                 let to  = user.roomId
                 let rawBody = {
                     msg: msg, from: user.id, to: to

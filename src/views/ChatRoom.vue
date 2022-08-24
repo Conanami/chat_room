@@ -4,7 +4,7 @@
       <el-card  shadow="never" class="box-card">
         <template #header>
           <div class="card-header" style="text-align: center">
-            <h4 style="display: inline"> 在线聊天室</h4>
+            <h4 style="display: inline"> {{roomTitle}}</h4>
          </div>
         </template>
         <div>
@@ -50,7 +50,7 @@
           <!--                  输入框-->
           <div id="editText">
             <div>
-              <el-input @keyup.enter="sendMsg(msg)" resize="none" v-model.trim="msg"  type="textarea" placeholder="文明聊天，从这开始" ></el-input>
+              <el-input @keyup.enter="sendMsg(msg)" resize="none" v-model="msg"  type="textarea" placeholder="文明聊天，从这开始" ></el-input>
             </div>
             <div style="text-align:right;padding:10px;border-top:1px solid rgb(231, 229, 229)">
               <el-button  type="primary" @click="sendMsg(msg)"  plain>发送</el-button>
@@ -96,6 +96,18 @@ export default {
       dialogTableVisible:false,//弹框
       screenWidth: document.documentElement.clientWidth,//屏幕宽度
     });
+
+    const roomTitle = computed(()=>{
+      if(store.state.chatRoomInfo.online==undefined){
+        return '多人聊天室'
+      }
+      if(store.state.chatRoomInfo.size==2){
+        return '双人聊天室('+store.state.chatRoomInfo.online+'/'+ store.state.chatRoomInfo.total +')'
+      }else{
+        return '多人聊天室('+store.state.chatRoomInfo.online+'/'+ store.state.chatRoomInfo.total +')'
+      }
+    })
+
     //加入聊天室
     const joinChatRoom=()=>{
       let exist = roomModel.loadCacheUser(id)
@@ -166,7 +178,8 @@ export default {
       roomModel,
       filters,
       joinChatRoom,
-      chat_div
+      chat_div,
+      roomTitle
 
     }
   }
