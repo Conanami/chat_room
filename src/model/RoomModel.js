@@ -8,7 +8,7 @@
 import {aesDecrypt, aesEncrypt, generateKey, rsaDecrypt, rsaEncrypt} from '@/util/rsa.js'
 import SnowflakeID from '@/util/snowflake.js'
 import dateFormat from '@/util/time.js'
-import {reactive} from 'vue'
+import {reactive,computed} from 'vue'
 import {useStore} from 'vuex'
 import * as Socket from '../util/Socket'
 
@@ -103,17 +103,17 @@ const RoomModel = () => {
 
     const handle300 = (msgObj) => {
         let {auth, context} = msgObj.body;
-        // console.log('pri:', user.pri)
-        if(parseInt(user.roomInfo.size)==2){
+        if(parseInt(store.getters.getUserLength)==2){
             let rawBody = JSON.parse(aesDecrypt(context, rsaDecrypt(auth, user.pri)));
             console.log('rawBody', rawBody);
-        
+
             //返回310给对方
             Socket.sendSock({type: 310, from: msgObj.to, to: msgObj.from, body: {'localid': rawBody.localid}}).then((obj2)=>{
                 // console.log('send 310 complete')
                 addRecords(rawBody)
             })
         }else{
+            console.log('接收的密码=',user.roomInfo.passwd)
             let rawBody = JSON.parse(aesDecrypt(context, user.roomInfo.passwd));
             console.log('rawBody', rawBody);
             addRecords(rawBody)
@@ -140,7 +140,7 @@ const RoomModel = () => {
             store.commit('syncChatRecords', obj)
         }
     }
-    
+
     // 创建房间
     const createRoom = async (name, size) => {
         return new Promise((resolve, reject)=>{
@@ -158,7 +158,7 @@ const RoomModel = () => {
     const joinRoom = () => {
         return new Promise((resolve, reject)=>{
             let msg = {type: 130, from: user.id, to: 'server', body: {roomid: user.roomId, userid: user.id, pub: user.pub}}
-    
+
             Socket.sendSock(msg).then((obj)=>{
                 handle130(obj)
                 addRecords('')
@@ -176,8 +176,10 @@ const RoomModel = () => {
         //     return
         // }
         return new Promise((resolve, reject)=>{
+            console.log('人数1=',store.getters.getUserLength)
+
             // 判断聊天室，如果只有两个人，那消息直接发给对方
-            if (user.roomInfo.users.length == 2) {
+            if (user.roomInfo.users.length== 2) {
                 let tos = user.roomInfo.users.filter((userid) => {
                     if (userid != user.id) {
                         return userid
@@ -197,7 +199,7 @@ const RoomModel = () => {
                     let key = 's'+ new SnowflakeID().generate().substring(0, 3)          // 生成会话密钥
                     let auth = rsaEncrypt(key, user.roomInfo.pubs[to])    //使用公钥加密 会话密钥
                     console.log('key:', key, user.roomInfo.pubs[to])
-                    
+
                     let encrypt = aesEncrypt(source, key)     //使用会话密钥加密 聊天内容以及id
                     let obj = {type: 140, from: user.id, to: user.roomId, body: {auth: auth, context: encrypt}}
                     Socket.sendSock(obj).then((msgObj)=>{
@@ -205,21 +207,23 @@ const RoomModel = () => {
                         resolve(rawBody)
                     })
                 }
-    
+
             } else if (user.roomInfo.users.length > 2) {
                 // 超过两个人，消息是发给聊天室的，由聊天室发给每个人
                 let to  = user.roomId
                 let rawBody = {
                     msg: msg, from: user.id, to: to
                     , status: 2, time: ftime(new Date()), localid: new SnowflakeID().generate()
-                }    //原始body
+                }
+                console.log('发送的密码=',user.roomInfo.passwd)
+                //原始body
                 let encrypt = aesEncrypt(JSON.stringify(rawBody), user.roomInfo.passwd)
                 let obj = {type: 140, from: user.id, to: to, body: {context: encrypt}}
                     Socket.sendSock(obj).then((msgObj)=>{
                         addRecords(rawBody)
                         resolve(rawBody)
                     })
-    
+
             }
         });
     }

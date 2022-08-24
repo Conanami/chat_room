@@ -4,10 +4,21 @@ export default createStore({
   state: {
     roomId:'',
     userInfo:{},//用户信息:roomId userId pri  pub,
-    chatRoomInfo:{},// // {id:abc123, users:['user1', 'user2', 'user3'], pubs:{user1: yyyy, user2: yyyy2}, name:'聊天室名字', size:2 }
+    chatRoomInfo:{
+      id:null,
+      name:null,
+      passwd:null,
+      pubs:null,
+      size:0,
+      users:Array
+    },// // {id:abc123, users:['user1', 'user2', 'user3'], pubs:{user1: yyyy, user2: yyyy2}, name:'聊天室名字', size:2 }
     chatRecords:{}
   },
   getters: {
+    getUserLength(state){
+      console.log('进来了=',state.chatRoomInfo.users)
+      return state.chatRoomInfo.users.length || 0
+    }
   },
   mutations: {
 
