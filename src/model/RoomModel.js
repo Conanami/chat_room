@@ -49,7 +49,13 @@ const RoomModel = () => {
 
     // 创建用户密钥对
     const createUser = (roomId) => {
-        let rsa = generateKey()
+
+        let rsa = {id: new SnowflakeID().generate(), pri:'', pub:''}
+        if(roomId.substring(0,2)=='2s'){
+            //双人聊天室
+            rsa = generateKey()
+        }
+
         rsa.roomId = roomId
 
         user.pub = rsa.pub
@@ -177,7 +183,7 @@ const RoomModel = () => {
         // }
         return new Promise((resolve, reject)=>{
             // 判断聊天室，如果只有两个人，那消息直接发给对方
-            if (user.roomInfo.users.length == 2) {
+            if (parseInt(user.roomInfo.size) == 2) {
                 let tos = user.roomInfo.users.filter((userid) => {
                     if (userid != user.id) {
                         return userid

@@ -106,6 +106,7 @@ export default {
             roomModel.connect().then(()=>{
               roomModel.joinRoom().then((obj)=>{
                 console.log('加入聊天室成功', obj)
+                data.dialogTableVisible=false;
               })
             }) 
           },500)
