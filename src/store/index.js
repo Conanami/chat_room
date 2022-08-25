@@ -13,7 +13,8 @@ export default createStore({
       size:0,
       users:Array
     },// // {id:abc123, users:['user1', 'user2', 'user3'], pubs:{user1: yyyy, user2: yyyy2}, name:'聊天室名字', size:2 }
-    chatRecords:{}
+    chatRecords:{},
+    nicknames:null
   },
   getters: {
     getUserLength(state){
@@ -26,6 +27,10 @@ export default createStore({
     syncUser(state, user){
       state.userInfo = user
       state.roomId = user.roomId
+    },
+    //同步用户昵称备注
+    syncNicknames(state, user){
+      state.nicknames = user
     },
     //同步聊天室地址
     syncChatRoomUrl(state, url){

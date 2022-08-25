@@ -105,6 +105,7 @@ const RoomModel = () => {
         user.roomInfo = msgObj.body
         // 同步聊天室信息给 vuex
         store.commit('syncRoomInfo', user.roomInfo)
+        store.commit('syncNicknames',msgObj.body.nicknames)
     }
 
     const handle300 = (msgObj) => {
@@ -128,6 +129,7 @@ const RoomModel = () => {
 
     // 修改聊天状态
     const handle310 = (msgObj) => {
+
         let {localid} = msgObj.body;
         if(localid){
             console.log('sync records')
@@ -146,6 +148,25 @@ const RoomModel = () => {
             store.commit('syncChatRecords', obj)
         }
     }
+    //  // 修改名称
+    // const updateName = (userIds) => {
+    //
+    //         let key = 'records:' + user.roomId
+    //         // 从缓存加载
+    //         let str = localStorage.getItem(key)
+    //         let obj = JSON.parse(str);
+    //
+    //         obj.forEach(item => {
+    //             if (localid == item.localid) {
+    //                 item.status = '2'
+    //             }
+    //         })
+    //         user.chatRecords[key] = obj;
+    //         localStorage.setItem(key, JSON.stringify(obj))
+    //         //同步聊天记录给 vuex
+    //         store.commit('syncChatRecords', obj)
+    // }
+
 
     // 创建房间
     const createRoom = async (name, size) => {
@@ -168,10 +189,9 @@ const RoomModel = () => {
     }
 
     // 加入房间
-    const joinRoom = () => {
+    const joinRoom = (nickname) => {
         return new Promise((resolve, reject)=>{
-            let msg = {type: 130, from: user.id, to: 'server', body: {roomid: user.roomId, userid: user.id, pub: user.pub}}
-
+            let msg = {type: 130, from: user.id, to: 'server', body: {roomid: user.roomId, userid: user.id, pub: user.pub,nickname:nickname}}
             Socket.sendSock(msg).then((obj)=>{
                 handle130(obj)
                 addRecords('')
@@ -179,6 +199,7 @@ const RoomModel = () => {
             })
         })
     }
+
 
     // 发送消息
     const sendMsg = (msg) => {
@@ -188,7 +209,7 @@ const RoomModel = () => {
                 reject({error:'对方尚未加入聊天室，无法发送消息'})
                 return
             }
-            
+
             // 如果聊天室 容量是 2，那消息直接发给对方
             if (parseInt(user.roomInfo.size) == 2) {
                 let tos = user.roomInfo.users.filter((userid) => {
@@ -277,7 +298,7 @@ const RoomModel = () => {
     }
 
     return {
-        user, connect, createRoom, loadCacheUser, createUser, joinRoom, sendMsg
+        user, connect, createRoom, loadCacheUser, createUser, joinRoom, sendMsg,
     }
 }
 
