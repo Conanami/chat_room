@@ -65,7 +65,7 @@
           <!--                  输入框-->
           <div id="editText">
             <div>
-              <el-input @keyup.enter="sendMsg(msg)" resize="none" v-model.trim="msg"  type="textarea" placeholder="文明聊天，从这开始" ></el-input>
+              <el-input @keyup.enter="sendMsg(msg)" resize="none" v-model="msg"  type="textarea" placeholder="文明聊天，从这开始" ></el-input>
             </div>
             <div style="text-align:right;padding:10px;border-top:1px solid rgb(231, 229, 229)">
               <el-button  type="primary" @click="sendMsg(msg)"  >发送</el-button>
