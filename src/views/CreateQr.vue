@@ -6,22 +6,22 @@
       <el-card style="margin: 0 auto" :style="{'width':screenWidth>786?'600px':''}" class="box-card">
           <template #header>
             <div class="card-header">
-              <span>创建聊天室</span>
+              <span>{{ $t(`createqr.header`)}}</span>
             </div>
           </template>
           <div class="text item">
             <el-form :model="form" label-width="90px">
-              <el-form-item label="聊天室名称">
-                <el-input placeholder="请输入聊天室名称" v-model="form.name" />
+              <el-form-item :label="$t('createqr.labelname')">
+                <el-input :placeholder="$t('createqr.plhname')" v-model="form.name" />
               </el-form-item>
-              <el-form-item label="聊天室人数">
-                <el-select v-model="form.size" placeholder="请选择聊天室人数">
-                  <el-option label="两人" value="2" />
-                  <el-option label="不限" value="0" />
+              <el-form-item :label="$t('createqr.labelqty')">
+                <el-select v-model="form.size" :placeholder="$t('createqr.plhqty')">
+                  <el-option :label="$t('createqr.two')" value="2" />
+                  <el-option :label="$t('createqr.unlimit')" value="0" />
                 </el-select>
               </el-form-item>
               <el-form-item >
-                  <el-button type="primary" @click="onSubmit">确定</el-button>
+                  <el-button type="primary" @click="onSubmit">{{ $t(`createqr.btn`)}}</el-button>
               </el-form-item>
             </el-form>
 
@@ -32,7 +32,7 @@
     <el-dialog
         center
         v-model="dialogVisible"
-        title="请扫描二维码进入聊天室"
+        :title="$t('createqr.scan')"
         :width="screenWidth>786?'400px':'90%'"
     >
       <div v-loading="store.state.roomId==''" style="text-align: center;overflow: auto">
@@ -51,6 +51,7 @@ import qrCode from '@/components/QrCode.vue'
 import {ElMessage} from "element-plus";
 import RoomModel from '../model/RoomModel'
 import {useStore} from "vuex";
+import {useI18n} from 'vue-i18n'
 
 export default {
   components:{qrCode},
@@ -63,6 +64,7 @@ export default {
       value:'',
       infoObj:{}
     })
+    const {t} = useI18n()
     const roomModel = RoomModel();
     const store = useStore()
 
@@ -71,14 +73,14 @@ export default {
       let {name,size}=data.form;
       if(!name){
         ElMessage({
-          message: '请输入聊天室名称',
+          message: t('createqr.noname'),
           type: 'warning',
         })
         return;
       }
       if(!size){
         ElMessage({
-          message: '请选择聊天人数',
+          message: t('createqr.noqty'),
           type: 'warning',
         })
         return;

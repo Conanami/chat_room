@@ -26,7 +26,7 @@
                     :content="'ID:'+item.from"
                     placement="top-start"
                 >
-                <div style="width: 40px;"  class="headDiv">{{ (store.state.chatRoomInfo.users!=undefined &&store.state.chatRoomInfo.users.length<3)? '他':filters(item) }}</div>
+                <div style="width: 40px;"  class="headDiv">{{ (store.state.chatRoomInfo.users!=undefined &&store.state.chatRoomInfo.users.length<3)? $t('chatroom.ta'):filters(item) }}</div>
               </el-tooltip>
                 <div class="info">
                   <p class="time">{{ filters(item,5) }}</p>
@@ -45,8 +45,8 @@
                   <p class="time">{{filters(item,5) }}</p>
                   <p class="time2"> {{ item.time }}</p>
                   <div class="info-content">{{ item.msg}}
-                    <span class="readTwo" v-if="item.status=='2'">已读</span>
-                    <span class="readTwo" v-else-if="item.status=='0'">未收</span>
+                    <span class="readTwo" v-if="item.status=='2'">{{ $t(`chatroom.readed`)}}</span>
+                    <span class="readTwo" v-else-if="item.status=='0'">{{ $t(`chatroom.unread`)}}</span>
                     <span v-else></span>
                   </div>
                 </div>
@@ -56,7 +56,7 @@
                     :content="'ID:'+item.from"
                     placement="top-end"
                 >
-                <div @click="rightClick(item)" class="headDiv">{{  (store.state.chatRoomInfo.users!=undefined &&store.state.chatRoomInfo.users.length<3)? '我':filters(item)}}</div>
+                <div @click="rightClick(item)" class="headDiv">{{  (store.state.chatRoomInfo.users!=undefined &&store.state.chatRoomInfo.users.length<3)? $t('chatroom.me'):filters(item)}}</div>
                 </el-tooltip>
               </div>
             </div>
@@ -65,12 +65,12 @@
           <!--                  输入框-->
           <div id="editText">
             <div>
-              <el-input @keyup.enter="sendMsg(msg)" resize="none" v-model="msg"  type="textarea" placeholder="文明聊天，从这开始" ></el-input>
+              <el-input @keyup.enter="sendMsg(msg)" resize="none" v-model="msg"  type="textarea" :placeholder="$t('chatroom.plh')" ></el-input>
             </div>
             <div style="text-align:right;padding:10px;border-top:1px solid rgb(231, 229, 229)">
-              <el-button  type="primary" @click="sendMsg(msg)"  >发送</el-button>
+              <el-button  type="primary" @click="sendMsg(msg)"  >{{ $t(`chatroom.send`)}}</el-button>
 
-              <el-button plain>清空</el-button>
+              <el-button plain>{{ $t(`chatroom.clear`)}}</el-button>
             </div>
           </div>
 
@@ -78,27 +78,27 @@
       </el-card>
 
 <!--    提示弹框-->
-    <el-dialog :width="screenWidth>768?'30%':'90%'"  center :show-close="false" :close-on-press-escape="false" :close-on-click-modal="false" :model-value="store.state.chatRoomInfo.error!=undefined" title="温馨提示">
+    <el-dialog :width="screenWidth>768?'30%':'90%'"  center :show-close="false" :close-on-press-escape="false" :close-on-click-modal="false" :model-value="store.state.chatRoomInfo.error!=undefined" :title="$t('chatroom.hint')">
       <h3  class="fontColorh3">{{store.state.chatRoomInfo.error}}</h3>
 
     </el-dialog>
 <!--    提示弹框-->
-    <el-dialog :width="screenWidth>768?'30%':'90%'"  center :show-close="false" :close-on-press-escape="false" :close-on-click-modal="false" :model-value="store.state.chatRoomInfo.error==undefined && store.state.chatRoomInfo.id==undefined " title="温馨提示">
-      <h3  class="fontColorh3">正在进入聊天室，请稍后...</h3>
+    <el-dialog :width="screenWidth>768?'30%':'90%'"  center :show-close="false" :close-on-press-escape="false" :close-on-click-modal="false" :model-value="store.state.chatRoomInfo.error==undefined && store.state.chatRoomInfo.id==undefined " :title="$t('chatroom.hint')">
+      <h3  class="fontColorh3">{{ $t(`chatroom.enter`)}}</h3>
     </el-dialog>
 <!--修改备注-->
 
-    <el-dialog  :width="screenWidth>768?'30%':'90%'" center v-model="dialogRemarkVisible" title="修改昵称">
+    <el-dialog  :width="screenWidth>768?'30%':'90%'" center v-model="dialogRemarkVisible" :title="$t('chatroom.nickchange')">
       <el-form :model="remarkForm" label-width="70px">
-        <el-form-item label="昵称：" >
+        <el-form-item :label="$t('chatroom.nickname')" >
           <el-input v-model="remarkForm.name" autocomplete="off" />
         </el-form-item>
       </el-form>
       <template #footer>
       <span class="dialog-footer">
-        <el-button @click="dialogRemarkVisible = false">取消</el-button>
+        <el-button @click="dialogRemarkVisible = false">{{ $t(`chatroom.cancel`)}}</el-button>
         <el-button type="primary" @click="updateRemarkSubimit(remarkForm.name)"
-        >确定</el-button
+        >{{ $t(`chatroom.ok`)}}</el-button
         >
       </span>
       </template>
@@ -112,17 +112,18 @@ import { useRoute } from "vue-router"
 import RoomModel from '../model/RoomModel'
 import {useStore} from "vuex";
 import {ElMessage} from 'element-plus'
-
+import {useI18n} from 'vue-i18n'
 
 export default {
   setup() {
     const roomModel = RoomModel();
     const store = useStore();
     const {id}=useRoute().query; // 地址兰参数
+    const {t} = useI18n()
     const data = reactive({
       chatRecords:[],
       msg:'',
-      hint:'提示',
+      hint:t('chatroom.hint'),
       remarkForm:{},//备注表单
       dialogTableVisible:false,//弹框
       dialogRemarkVisible:false,//备注弹框
@@ -134,12 +135,12 @@ export default {
     };
     const roomTitle = computed(()=>{
       if(store.state.chatRoomInfo.online==undefined){
-        return '多人聊天室'
+        return t('chatroom.group')
       }
       if(store.state.chatRoomInfo.size==2){
-        return '双人聊天室('+store.state.chatRoomInfo.online+'/'+ store.state.chatRoomInfo.total +')'
+        return t('chatroom.two')+'('+store.state.chatRoomInfo.online+'/'+ store.state.chatRoomInfo.total +')'
       }else{
-        return '多人聊天室('+store.state.chatRoomInfo.online+'/'+ store.state.chatRoomInfo.total +')'
+        return t('chatroom.group')+'('+store.state.chatRoomInfo.online+'/'+ store.state.chatRoomInfo.total +')'
       }
     })
    //修改备注
@@ -147,13 +148,13 @@ export default {
       roomModel.joinRoom(newName).then(()=>{
         data.dialogRemarkVisible=false;
         ElMessage({
-          message: '修改昵称成功！',
+          message: t('chatroom.nickok'),
           type: 'success',
         })
         return;
       }).catch(()=>{
         ElMessage({
-          message: '修改昵称失败！',
+          message: t('chatroom.nickfail'),
           type: 'error',
         })
         return;
@@ -169,7 +170,7 @@ export default {
             roomModel.createUser(id)
             roomModel.connect().then(()=>{
               roomModel.joinRoom('').then((obj)=>{
-                console.log('加入聊天室成功', obj)
+                console.log(t('chatroom.enterok'), obj)
                 data.dialogTableVisible=false;
               })
             })
@@ -177,7 +178,7 @@ export default {
       }else{
         roomModel.connect().then(()=>{
               roomModel.joinRoom('').then((obj)=>{
-                console.log('加入聊天室成功', obj)
+                console.log(t('chatroom.enterok'), obj)
               })
             })
       }
@@ -217,7 +218,7 @@ export default {
     const sendMsg = (text) => {
       if(text==''){
         ElMessage({
-          message: '发送消息不能为空！',
+          message: t('chatroom.noempty'),
           type: 'warning',
         })
         return;
