@@ -74,7 +74,6 @@ const RoomModel = () => {
   // 连接服务器
   const connect = async () => {
     // Socket.configWebSocket("ws://127.0.0.1:2740/ws/" + user.id, 5, onMessage)
-    // Socket.configWebSocket("wss://dev.huifintech.com/ws/" + user.id, 5, onMessage)
     Socket.configWebSocket(
       "wss://agile-dusk-31941.herokuapp.com/ws/" + user.id,
       5,
