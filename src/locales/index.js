@@ -1,45 +1,46 @@
 import { createI18n } from "vue-i18n";
 export default createI18n({
-  legacy: false, // 让 setup 函数可以通过 t 访问
-  globalInjection: true, // 让 template 可以像 vue2 那样使用 $t 来访问
+  legacy: false, // setup using t
+  globalInjection: true, //  template can use $t like vue2
   locale: "en-us",
-  fallbackLocale: "zh-cn", //切换 zh-cn en-us 控制展示文字
+  fallbackLocale: "fr-ca", //switch fr-ca en-us
   messages: {
-    "zh-cn": {
+    "fr-ca": {
       createqr: {
-        header: "创建聊天室",
-        labelname: "聊天室名称",
-        plhname: "请输入聊天室名称",
-        labelqty: "聊天室人数",
-        plhqty: "请输入聊天室人数",
-        two: "二人",
-        unlimit: "群聊",
-        btn: "创建聊天室",
-        scan: "请从这个二维码开始聊天，并且把二维码分享给对方",
-        noname: "聊天室名称不能为空",
-        noqty: "聊天室人数未选择，请选择",
+        header: "Créer une salle de discussion",
+        labelname: "nom de la salle de discussion",
+        plhname: "Veuillez saisir le nom de la salle de discussion",
+        labelqty: "Nombre de salons de discussion",
+        plhqty: "Veuillez saisir le nombre de salons de discussion",
+        two: "deux personnes",
+        unlimit: "Chat de groupe",
+        btn: "Créer un salon de discussion",
+        scan: "Veuillez commencer à discuter à partir de ce code QR et partager le code QR les uns avec les autres",
+        noname: "Le nom de la salle de discussion ne peut pas être vide",
+        noqty:
+          "Le nombre de salons de discussion n'a pas été sélectionné, veuillez sélectionner",
       },
       chatroom: {
-        readed: "已读",
-        unread: "未收",
-        send: "发送",
-        clear: "清空",
-        enter: "正在连线...",
-        nickname: "昵称",
-        ok: "确定",
-        cancel: "取消",
-        hint: "提示",
-        group: "多人聊天室",
-        two: "二人聊天室",
-        nickok: "昵称修改成功",
-        nickfail: "昵称修改失败",
-        enterok: "成功进入聊天室",
-        noempty: "不能发送空消息",
-        plh: "文明聊天，从我做起",
-        msg: "对方尚未加入聊天室，请等待对方加入",
+        readed: "lire",
+        unread: "Non reçu",
+        send: "Envoyer",
+        clear: "Effacer",
+        enter: "Connexion...",
+        nickname: "Surnom",
+        ok: "OK",
+        cancel: "Annuler",
+        hint: "indice",
+        group: "Salle de discussion multijoueur",
+        two: "Salle de discussion à deux",
+        nickok: "Pseudo modifié avec succès",
+        nickfail: "La modification du pseudo a échoué",
+        enterok: "Entrée avec succès dans la salle de discussion",
+        noempty: "Impossible d'envoyer un message vide",
+        plh: "Chat civilisé, commence par moi",
+        msg: "L'autre partie n'a pas rejoint la salle de discussion, veuillez attendre que l'autre partie rejoigne",
       },
       index: {
-        title: "你好，vue-i18n",
+        title: "Bonjour，vue-i18n",
       },
     },
     "en-us": {

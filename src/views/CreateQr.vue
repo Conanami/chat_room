@@ -58,9 +58,9 @@ export default {
   setup() {
     const data = reactive({
       dialogVisible:false,
-      screenWidth: document.documentElement.clientWidth,//屏幕宽度
-      form:{},//聊天名称
-      userid:'',//聊天id
+      screenWidth: document.documentElement.clientWidth,
+      form:{},
+      userid:'',
       value:'',
       infoObj:{}
     })
@@ -99,7 +99,7 @@ export default {
       window.onresize = () => {
         return (() => {
           window.fullWidth = document.documentElement.clientWidth;
-          data.screenWidth = window.fullWidth; // 宽
+          data.screenWidth = window.fullWidth; 
         })()
       };
     });

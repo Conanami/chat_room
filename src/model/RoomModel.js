@@ -1,8 +1,8 @@
 /**
- * 聊天室的model层
- * 1， 如果只是为了创建房间，调用 createRoom 即可。
- * 2， 如果已经有了房间，准备进入， 首先要调用 loadCacheRoom 尝试加载缓存数据，如果没有，则需要调用 createUser 来生成用户密钥对数据
- * 3,  有了用户数据后，需要调用 connect 连接聊天服务器，然后调用 joinRoom 加入房间
+ * model layer for chatroom
+ * 1， if no room , createRoom
+ * 2， if room exists, loadCacheRoom , if no cache createUser
+ * 3,  if user exists, connect server，joinRoom
  * 4，
  */
 import {
@@ -75,7 +75,8 @@ const RoomModel = () => {
   const connect = async () => {
     // Socket.configWebSocket("ws://127.0.0.1:2740/ws/" + user.id, 5, onMessage)
     Socket.configWebSocket(
-      "wss://agile-dusk-31941.herokuapp.com/ws/" + user.id,
+      "wss://chatserver02.herokuapp.com/ws/" + user.id,
+      //"wss://agile-dusk-31941.herokuapp.com/ws/" + user.id,
       5,
       onMessage
     );
