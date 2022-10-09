@@ -72,10 +72,10 @@ const RoomModel = () => {
   };
 
   // connect server
-  const connect = async () => {
+  const connect = async ({ webSocketUrl }) => {
     // Socket.configWebSocket("ws://127.0.0.1:2740/ws/" + user.id, 5, onMessage)
     Socket.configWebSocket(
-      "wss://chatserver02.herokuapp.com/ws/" + user.id,
+      "wss://" + webSocketUrl + "/ws/" + user.id,
       //"wss://agile-dusk-31941.herokuapp.com/ws/" + user.id,
       5,
       onMessage

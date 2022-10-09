@@ -62,7 +62,8 @@ export default {
       form:{},
       userid:'',
       value:'',
-      infoObj:{}
+      infoObj:{},
+      webSocketServer:window.server.webSocketServer,
     })
     const {t} = useI18n()
     const roomModel = RoomModel();
@@ -86,8 +87,8 @@ export default {
         return;
       }
       let {userid,form}=data;
-
-      roomModel.connect().then(()=>{
+      console.log(data.webSocketServer);
+      roomModel.connect({webSocketUrl:data.webSocketServer}).then(()=>{
         roomModel.createRoom(name, size).then((msgObj)=>{
           data.dialogVisible=true;
         });
@@ -95,7 +96,7 @@ export default {
     };
 
     onMounted(() => {
-
+      data.webSocketServer=window.server.webSocketUrl;
       window.onresize = () => {
         return (() => {
           window.fullWidth = document.documentElement.clientWidth;
